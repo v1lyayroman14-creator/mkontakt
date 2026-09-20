@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>МКонтакт — социальная сеть</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  :root {
+    --bg: #0f0f17;
+    --card: #1a1a2e;
+    --card2: #22223b;
+    --border: #2d2d44;
+    --text: #e8e8f0;
+    --muted: #8b8ba7;
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --gold: #ffd93d;
+    --online: #4ade80;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+    padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 4px 20px rgba(108,92,231,0.3);
+  }
+  .logo { font-size: 22px; font-weight: 800; color: white; letter-spacing: 1px; }
+  .logo span { color: var(--gold); }
+  header input.search {
+    flex: 1; max-width: 400px;
+    padding: 8px 14px; border-radius: 20px; border: none;
+    background: rgba(255,255,255,0.2); color: white;
+    outline: none;
+  }
+  header input.search::placeholder { color: rgba(255,255,255,0.7); }
+  .header-actions { display: flex; gap: 10px; margin-left: auto; align-items: center; }
+  .btn-icon {
+    background: rgba(255,255,255,0.15); border: none; color: white;
+    width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; transition: 0.2s;
+  }
+  .btn-icon:hover { background: rgba(255,255,255,0.3); transform: scale(1.05); }
+
+  /* LAYOUT */
+  .container {
+    display: grid;
+    grid-template-columns: 240px 1fr 280px;
+    gap: 16px;
+    max-width: 1200px;
+    margin: 16px auto;
+    padding: 0 16px;
+    width: 100%;
+    flex: 1;
+  }
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+    .sidebar, .rightbar { display: none; }
+    .sidebar.mobile-open, .rightbar.mobile-open { display: block; }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  /* SIDEBAR */
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; cursor: pointer;
+    color: var(--text); transition: 0.15s; font-size: 14px;
+  }
+  .nav-item:hover { background: var(--card2); }
+  .nav-item.active { background: var(--accent); color: white; }
+  .nav-item .ic { font-size: 18px; }
+
+  /* PROFILE CARD */
+  .profile-mini { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: white; font-size: 16px; flex-shrink: 0;
+    position: relative;
+  }
+  .avatar.mplus::after {
+    content: "👑"; position: absolute; top: -6px; right: -6px;
+    font-size: 14px;
+  }
+  .verified::after {
+    content: "✓"; display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; background: #1da1f2; color: white;
+    border-radius: 50%; font-size: 10px; margin-left: 4px; font-weight: bold;
+  }
+  .mplus-badge {
+    background: linear-gradient(90deg, #ffd93d, #ff9a3d);
+    color: #1a1a2e; font-size: 10px; font-weight: 800;
+    padding: 2px 6px; border-radius: 6px; margin-left: 4px;
+  }
+
+  /* FEED */
+  .composer textarea {
+    width: 100%; background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px; color: var(--text);
+    resize: none; outline: none; min-height: 70px;
+  }
+  .composer .row { display: flex; justify-content: space-between; margin-top: 8px; }
+  .btn {
+    background: var(--accent); color: white; border: none;
+    padding: 8px 16px; border-radius: 10px; cursor: pointer;
+    font-weight: 600; font-size: 13px; transition: 0.2s;
+  }
+  .btn:hover { background: var(--accent2); }
+  .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn.gold { background: linear-gradient(90deg,#ffd93d,#ff9a3d); color: #1a1a2e; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .post { margin-bottom: 12px; }
+  .post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .post-head .name { font-weight: 600; font-size: 14px; display: flex; align-items: center; }
+  .post-head .time { color: var(--muted); font-size: 12px; }
+  .post-body { font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+  .post-banner {
+    width: 100%; height: 140px; border-radius: 10px;
+    background: linear-gradient(135deg,#6c5ce7,#a29bfe,#fd79a8);
+    background-size: 200% 200%;
+    animation: gradientMove 4s ease infinite;
+    margin-bottom: 10px; display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700;
+  }
+  @keyframes gradientMove {
+    0%,100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .post-actions { display: flex; gap: 16px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .post-actions button {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 4px;
+    transition: 0.2s;
+  }
+  .post-actions button:hover { color: var(--accent2); }
+  .post-actions button.liked { color: #fd79a8; }
+
+  /* RIGHTBAR */
+  .contact { display: flex; align-items: center; gap: 10px; padding: 6px 0; cursor: pointer; font-size: 13px; }
+  .contact .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-left: auto; }
+  .contact .dot.on { background: var(--online); }
+  .section-title { font-size: 13px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* MODAL */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center; z-index: 200;
+    padding: 16px;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 16px; padding: 20px;
+    max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto;
+    border: 1px solid var(--border);
+  }
+  .modal h2 { margin-bottom: 14px; font-size: 18px; }
+  .modal .field { margin-bottom: 12px; }
+  .modal label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%; padding: 8px 12px; border-radius: 8px;
+    background: var(--card2); border: 1px solid var(--border);
+    color: var(--text); outline: none; font-size: 14px;
+  }
+  .modal-close { float: right; cursor: pointer; color: var(--muted); font-size: 20px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .tab {
+    padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    background: var(--card2); font-size: 12px; border: 1px solid var(--border);
+  }
+  .tab.active { background: var(--accent); border-color: var(--accent); }
+
+  /* CLAN */
+  .clan-card {
+    border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+    margin-bottom: 10px; background: var(--card2);
+  }
+  .clan-tag { color: var(--gold); font-weight: 700; }
+  .role-badge {
+    font-size: 10px; padding: 2px 6px; border-radius: 6px;
+    background: var(--accent); color: white; margin-left: 6px;
+  }
+  .role-badge.owner { background: linear-gradient(90deg,#ffd93d,#ff9a3d); color:#1a1a2e;}
+  .role-badge.admin { background: #e74c3c; }
+  .role-badge.mod { background: #3498db; }
+
+  /* ADMIN */
+  .admin-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; border-bottom: 1px solid var(--border);
+  }
+  .admin-row:last-child { border-bottom: none; }
+  .admin-row .name { flex: 1; font-size: 14px; }
+
+  /* CHAT */
+  .chat-window {
+    display: flex; flex-direction: column; height: 60vh;
+  }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 10px; }
+  .msg {
+    padding: 8px 12px; border-radius: 12px; margin-bottom: 8px;
+    max-width: 70%; font-size: 14px; word-wrap: break-word;
+  }
+  .msg.me { background: var(--accent); color: white; margin-left: auto; }
+  .msg.them { background: var(--card2); }
+  .chat-input { display: flex; gap: 8px; margin-top: 8px; }
+  .chat-input input { flex: 1; }
+
+  /* CALL */
+  .call-screen {
+    text-align: center; padding: 30px 0;
+  }
+  .call-screen .big-avatar {
+    width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 16px;
+    background: linear-gradient(135deg,#6c5ce7,#a29bfe);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px; font-weight: 700; color: white;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(108,92,231,0.7); }
+    50% { box-shadow: 0 0 0 20px rgba(108,92,231,0); }
+  }
+  .call-actions { display: flex; justify-content: center; gap: 16px; margin-top: 20px; }
+  .call-btn {
+    width: 56px; height: 56px; border-radius: 50%; border: none;
+    cursor: pointer; font-size: 22px; transition: 0.2s;
+  }
+  .call-btn.end { background: #e74c3c; color: white; }
+  .call-btn.accept { background: var(--online); color: white; }
+
+  /* NOTIFICATION */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: white; padding: 12px 20px;
+    border-radius: 10px; z-index: 300; opacity: 0; transition: 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* AUTH */
+  .auth-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 20px;
+  }
+  .auth-box {
+    background: var(--card); padding: 30px; border-radius: 20px;
+    width: 100%; max-width: 380px; border: 1px solid var(--border);
+    text-align: center;
+  }
+  .auth-box h1 { font-size: 32px; margin-bottom: 6px; }
+  .auth-box h1 span { color: var(--gold); }
+  .auth-box p { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .auth-box input { margin-bottom: 10px; text-align: left; }
+  .hidden { display: none !important; }
+
+  .empty { color: var(--muted); text-align: center; padding: 20px; font-size: 13px; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--card); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-box">
+    <h1>М<span>Контакт</span> 👑</h1>
+    <p>Социальная сеть нового поколения</p>
+    <input id="authName" placeholder="Твоё имя" />
+    <input id="authNick" placeholder="Никнейм (@nick)" />
+    <button class="btn" style="width:100%;padding:12px;" onclick="login()">Войти</button>
+    <p style="margin-top:16px;font-size:11px;">Демо-режим. Данные хранятся локально.</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+  <header>
+    <div class="logo">М<span>Контакт</span> 👑</div>
+    <input class="search" placeholder="Поиск людей, постов, кланов..." oninput="globalSearch(this.value)" />
+    <div class="header-actions">
+      <button class="btn-icon" onclick="openModal('callModal')" title="Звонки">📞</button>
+      <button class="btn-icon" onclick="openModal('chatModal')" title="Сообщения">💬</button>
+      <button class="btn-icon" onclick="openModal('mplusModal')" title="М+">👑</button>
+      <button class="btn-icon" onclick="openModal('adminModal')" title="Админ">⚙️</button>
+      <div class="avatar" id="headerAvatar" onclick="switchTab('profile')" style="cursor:pointer;"></div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="card">
+        <div class="profile-mini" onclick="switchTab('profile')">
+          <div class="avatar" id="sideAvatar"></div>
+          <div>
+            <div class="name" id="sideName" style="font-weight:600;font-size:14px;"></div>
+            <div style="font-size:12px;color:var(--muted);" id="sideRole">Пользователь</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="nav-item active" data-tab="feed" onclick="switchTab('feed')"><span class="ic">📰</span> Лента</div>
+        <div class="nav-item" data-tab="profile" onclick="switchTab('profile')"><span class="ic">👤</span> Профиль</div>
+        <div class="nav-item" data-tab="friends" onclick="switchTab('friends')"><span class="ic">👥</span> Друзья</div>
+        <div class="nav-item" data-tab="chats" onclick="switchTab('chats')"><span class="ic">💬</span> Сообщения</div>
+        <div class="nav-item" data-tab="calls" onclick="switchTab('calls')"><span class="ic">📞</span> Звонки</div>
+        <div class="nav-item" data-tab="clans" onclick="switchTab('clans')"><span class="ic">🛡️</span> Кланы</div>
+        <div class="nav-item" data-tab="mplus" onclick="switchTab('mplus')"><span class="ic">👑</span> М+</div>
+        <div class="nav-item" data-tab="admin" onclick="switchTab('admin')"><span class="ic">⚙️</span> Админ-панель</div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent"></main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="rightbar">
+      <div class="card">
+        <div class="section-title">Онлайн друзья</div>
+        <div id="onlineFriends"></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Топ кланов</div>
+        <div id="topClans"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="chatModal" onclick="if(event.target===this)closeModal('chatModal')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('chatModal')">✕</span>
+    <h2>💬 Сообщения</h2>
+    <div id="chatList"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="callModal" onclick="if(event.target===this)closeModal('callModal')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('callModal')">✕</span>
+    <h2>📞 Звонки</h2>
+    <div class="call-screen">
+      <div class="big-avatar">📞</div>
+      <p style="color:var(--muted);margin-bottom:16px;">Начать звонок другу</p>
+      <select id="callUser" style="width:100%;padding:10px;border-radius:8px;background:var(--card2);border:1px solid var(--border);color:var(--text);"></select>
+      <div class="call-actions">
+        <button class="call-btn accept" onclick="startCall()">📞</button>
+        <button class="call-btn end" onclick="closeModal('callModal')">✕</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="mplusModal" onclick="if(event.target===this)closeModal('mplusModal')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('mplusModal')">✕</span>
+    <h2>👑 Подписка М+</h2>
+    <div style="text-align:center;padding:16px 0;">
+      <div style="font-size:48px;">👑</div>
+      <h3 style="margin:10px 0;">М+ Премиум</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">
+        Анимированные баннеры • Кланы • Темы • Стикеры • Без рекламы
+      </p>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
+        <div style="padding:10px 16px;border:1px solid var(--border);border-radius:10px;">
+          <div style="font-size:18px;font-weight:700;">299 ₽</div>
+          <div style="font-size:11px;color:var(--muted);">месяц</div>
+        </div>
+        <div style="padding:10px 16px;border:2px solid var(--gold);border-radius:10px;">
+          <div style="font-size:18px;font-weight:700;">1990 ₽</div>
+          <div style="font-size:11px;color:var(--muted);">год −45%</div>
+        </div>
+      </div>
+      <button class="btn gold" style="width:100%;padding:12px;" onclick="buyMPlus()" id="mplusBtn">
+        Оформить М+
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="adminModal" onclick="if(event.target===this)closeModal('adminModal')">
+  <div class="modal" style="max-width:600px;">
+    <span class="modal-close" onclick="closeModal('adminModal')">✕</span>
+    <h2>⚙️ Админ-панель</h2>
+    <div class="tabs">
+      <div class="tab active" onclick="switchAdminTab(event,'users')">Пользователи</div>
+      <div class="tab" onclick="switchAdminTab(event,'clans')">Кланы</div>
+      <div class="tab" onclick="switchAdminTab(event,'logs')">Логи</div>
+    </div>
+    <div id="adminContent"></div>
+  </div>
+</div>
+
+<script>
+/* ============ STATE ============ */
+const state = {
+  user: null,
+  currentTab: 'feed',
+  users: [],
+  posts: [],
+  clans: [],
+  chats: [],
+  logs: [],
+  friends: [],
+  calls: []
+};
+
+/* Seed demo users */
+const defaultUsers = [
+  { id: 1, name: 'Владелец', nick: '@owner', role: 'owner', mplus: true, verified: true, online: true },
+  { id: 2, name: 'Администратор', nick: '@admin', role: 'admin', mplus: true, verified: true, online: true },
+  { id: 3, name: 'Модератор', nick: '@mod', role: 'moderator', mplus: false, verified: false, online: false },
+  { id: 4, name: 'Анна', nick: '@anna', role: 'user', mplus: true, verified: false, online: true },
+  { id: 5, name: 'Иван', nick: '@ivan', role: 'user', mplus: false, verified: false, online: true },
+  { id: 6, name: 'Мария', nick: '@maria', role: 'user', mplus: false, verified: false, online: false },
+];
+
+const defaultPosts = [
+  { id: 1, author: 1, text: 'Добро пожаловать в МКонтакт! 🎉 Новая соцсеть с кланами и М+.', banner: true, time: Date.now() - 3600000, likes: 42, liked: false, comments: [] },
+  { id: 2, author: 4, text: 'Только что оформила М+ 👑 Анимированные баннеры — топ!', banner: false, time: Date.now() - 1800000, likes: 18, liked: false, comments: [] },
+  { id: 3, author: 5, text: 'Кто хочет в клан "Ночные волки"? Набираем актив 🐺', banner: false, time: Date.now() - 600000, likes: 7, liked: false, comments: [] },
+];
+
+/* ============ INIT ============ */
+function load() {
+  const saved = localStorage.getItem('mkontakt');
+  if (saved) {
+    const d = JSON.parse(saved);
+    Object.assign(state, d);
+  } else {
+    state.users = [...defaultUsers];
+    state.posts = [...defaultPosts];
+    state.clans = [
+      { id: 1, name: 'Ночные волки', tag: 'WOLF', owner: 2, members: [2,4,5], banner: true, points: 1250 },
+      { id: 2, name: 'Кибер-Драконы', tag: 'CYBR', owner: 1, members: [1,4], banner: true, points: 980 },
+    ];
+    state.chats = [];
+    state.logs = [];
+    state.friends = [4,5];
+    state.calls = [];
+  }
+}
+function save() { localStorage.setItem('mkontakt', JSON.stringify(state)); }
+
+/* ============ AUTH ============ */
+function login() {
+  const name = document.getElementById('authName').value.trim();
+  const nick = document.getElementById('authNick').value.trim();
+  if (!name || !nick) return toast('Заполни все поля');
+  const existing = state.users.find(u => u.nick === nick);
+  if (existing) {
+    state.user = existing;
+  } else {
+    const newUser = {
+      id: Date.now(),
+      name, nick: nick.startsWith('@') ? nick : '@' + nick,
+      role: 'user', mplus: false, verified: false, online: true
+    };
+    state.users.push(newUser);
+    state.user = newUser;
+  }
+  save();
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  renderAll();
+}
+
+/* ============ NAV ============ */
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === tab));
+  renderMain();
+}
+
+function renderAll() {
+  renderHeader();
+  renderSidebar();
+  renderMain();
+  renderRightbar();
+  renderChatList();
+  renderCallUserList();
+}
+
+function renderHeader() {
+  document.getElementById('headerAvatar').textContent = state.user.name[0].toUpperCase();
+  document.getElementById('headerAvatar').classList.toggle('mplus', state.user.mplus);
+}
+function renderSidebar() {
+  document.getElementById('sideAvatar').textContent = state.user.name[0].toUpperCase();
+  document.getElementById('sideAvatar').classList.toggle('mplus', state.user.mplus);
+  const roleNames = { owner: 'Владелец 👑', admin: 'Администратор', moderator: 'Модератор', user: 'Пользователь' };
+  document.getElementById('sideName').innerHTML = state.user.name + (state.user.verified ? '<span class="verified"></span>' : '') + (state.user.mplus ? '<span class="mplus-badge">M+</span>' : '');
+  document.getElementById('sideRole').textContent = roleNames[state.user.role];
+}
+
+/* ============ MAIN RENDER ============ */
+function renderMain() {
+  const m = document.getElementById('mainContent');
+  switch (state.currentTab) {
+    case 'feed': m.innerHTML = renderFeed(); break;
+    case 'profile': m.innerHTML = renderProfile(); break;
+    case 'friends': m.innerHTML = renderFriends(); break;
+    case 'chats': m.innerHTML = renderChats(); break;
+    case 'calls': m.innerHTML = renderCalls(); break;
+    case 'clans': m.innerHTML = renderClans(); break;
+    case 'mplus': m.innerHTML = renderMPlus(); break;
+    case 'admin': m.innerHTML = renderAdmin(); break;
+  }
+}
+
+function timeAgo(t) {
+  const d = Math.floor((Date.now() - t) / 1000);
+  if (d < 60) return d + 'с';
+  if (d < 3600) return Math.floor(d/60) + 'м';
+  if (d < 86400) return Math.floor(d/3600) + 'ч';
+  return Math.floor(d/86400) + 'д';
+}
+
+function userBadges(u) {
+  return (u.verified ? '<span class="verified"></span>' : '') + (u.mplus ? '<span class="mplus-badge">M+</span>' : '');
+}
+
+/* ============ FEED ============ */
+function renderFeed() {
+  return `
+    <div class="card composer">
+      <textarea id="postText" placeholder="Что нового, ${state.user.name}?"></textarea>
+      <div class="row">
+        <div style="display:flex;gap:6px;">
+          <button class="btn ghost" onclick="addGifPost()" title="Анимированный баннер">🎞️ GIF</button>
+          <button class="btn ghost">📷</button>
+          <button class="btn ghost">🎵</button>
+        </div>
+        <button class="btn" onclick="publishPost()">Опубликовать</button>
+      </div>
+    </div>
+    <div id="postsFeed">${state.posts.slice().reverse().map(renderPost).join('')}</div>
+  `;
+}
+
+function renderPost(p) {
+  const author = state.users.find(u => u.id === p.author) || { name: 'Аноним', nick: '@anon' };
+  return `
+    <div class="card post" id="post-${p.id}">
+      <div class="post-head">
+        <div class="avatar ${author.mplus ? 'mplus' : ''}">${author.name[0]}</div>
+        <div>
+          <div class="name">${author.name}${userBadges(author)}</div>
+          <div class="time">${timeAgo(p.time)} назад</div>
+        </div>
+      </div>
+      ${p.banner ? `<div class="post-banner">🎞️ Анимированный баннер М+</div>` : ''}
+      <div class="post-body">${p.text}</div>
+      <div class="post-actions">
+        <button class="${p.liked ? 'liked' : ''}" onclick="toggleLike(${p.id})">❤️ ${p.likes}</button>
+        <button onclick="commentPost(${p.id})">💬 ${p.comments.length}</button>
+        <button onclick="toast('Репост сделан!')">🔁 Репост</button>
+        ${state.user.role !== 'user' ? `<button onclick="deletePost(${p.id})" style="color:#e74c3c;">🗑 Удалить</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function publishPost() {
+  const text = document.getElementById('postText').value.trim();
+  if (!text) return toast('Введи текст');
+  state.posts.push({
+    id: Date.now(), author: state.user.id, text, banner: false,
+    time: Date.now(), likes: 0, liked: false, comments: []
+  });
+  save();
+  renderMain();
+  toast('Опубликовано!');
+}
+
+function addGifPost() {
+  if (!state.user.mplus) return toast('Анимированные баннеры доступны в М+ 👑');
+  const text = document.getElementById('postText').value.trim() || 'Анимированный баннер!';
+  state.posts.push({
+    id: Date.now(), author: state.user.id, text, banner: true,
+    time: Date.now(), likes: 0, liked: false, comments: []
+  });
+  save();
+  renderMain();
+  toast('GIF-баннер опубликован! 🎞️');
+}
+
+function toggleLike(id) {
+  const p = state.posts.find(x => x.id === id);
+  if (!p) return;
+  p.liked = !p.liked;
+  p.likes += p.liked ? 1 : -1;
+  save();
+  renderMain();
+}
+
+function commentPost(id) {
+  const text = prompt('Комментарий:');
+  if (!text) return;
+  const p = state.posts.find(x => x.id === id);
+  p.comments.push({ user: state.user.id, text, time: Date.now() });
+  save();
+  toast('Комментарий добавлен');
+}
+
+function deletePost(id) {
+  if (!confirm('Удалить пост?')) return;
+  state.posts = state.posts.filter(p => p.id !== id);
+  logAction(`Удалён пост #${id}`);
+  save();
+  renderMain();
+  toast('Пост удалён');
+}
+
+/* ============ PROFILE ============ */
+function renderProfile() {
+  const u = state.user;
+  return `
+    <div class="card">
+      <div class="post-banner" style="height:160px;">
+        ${u.mplus ? '🎞️ Анимированный баннер профиля (M+)' : 'Обложка профиля'}
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:-30px;padding-left:10px;">
+        <div class="avatar ${u.mplus ? 'mplus' : ''}" style="width:80px;height:80px;font-size:32px;border:4px solid var(--card);">${u.name[0]}</div>
+        <div>
+          <div style="font-size:20px;font-weight:700;">${u.name}${userBadges(u)}</div>
+          <div style="color:var(--muted);font-size:13px;">${u.nick}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;margin-top:16px;font-size:13px;">
+        <div><b>${state.friends.length}</b> <span style="color:var(--muted);">друзей</span></div>
+        <div><b>${state.posts.filter(p=>p.author===u.id).length}</b> <span style="color:var(--muted);">постов</span></div>
+        <div><b>${state.clans.filter(c=>c.members.includes(u.id)).length}</b> <span style="color:var(--muted);">кланов</span></div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+        ${!u.mplus ? `<button class="btn gold" onclick="openModal('mplusModal')">👑 Оформить М+</button>` : `<button class="btn ghost">👑 М+ активна</button>`}
+        <button class="btn ghost" onclick="editBanner()">🎞️ ${u.mplus ? 'Сменить баннер' : 'Баннер (M+)'}</button>
+        <button class="btn ghost" onclick="toast('Настройки приватности')">🔒 Приватность</button>
+      </div>
+    </div>
+    <div class="section-title" style="margin:14px 0 8px;">Мои посты</div>
+    ${state.posts.filter(p => p.author === u.id).reverse().map(renderPost).join('') || '<div class="empty">Пока нет постов</div>'}
+  `;
+}
+
+function editBanner() {
+  if (!state.user.mplus) return toast('Только для М+ 👑');
+  toast('Анимированный баннер обновлён! 🎞️');
+}
+
+/* ============ FRIENDS ============ */
+function renderFriends() {
+  const friends = state.friends.map(id => state.users.find(u => u.id === id)).filter(Boolean);
+  const others = state.users.filter(u => u.id !== state.user.id && !state.friends.includes(u.id));
+  return `
+    <div class="card">
+      <div class="section-title">Мои друзья (${friends.length})</div>
+      ${friends.map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}${userBadges(u)}</div>
+          <button class="btn ghost" onclick="openChatWith(${u.id})">💬</button>
+          <button class="btn ghost" onclick="removeFriend(${u.id})">✕</button>
+        </div>
+      `).join('') || '<div class="empty">Нет друзей</div>'}
+    </div>
+    <div class="card">
+      <div class="section-title">Все пользователи</div>
+      ${others.map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}${userBadges(u)} <span style="color:var(--muted);font-size:12px;">${u.nick}</span></div>
+          <button class="btn" onclick="addFriend(${u.id})">+ В друзья</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function addFriend(id) {
+  if (!state.friends.includes(id)) state.friends.push(id);
+  save(); renderMain(); toast('Добавлен в друзья');
+}
+function removeFriend(id) {
+  state.friends = state.friends.filter(f => f !== id);
+  save(); renderMain(); toast('Удалён из друзей');
+}
+
+/* ============ CHATS ============ */
+function renderChats() {
+  return `
+    <div class="card">
+      <div class="section-title">Сообщения</div>
+      ${state.chats.length === 0 ? '<div class="empty">Нет чатов. Напиши другу!</div>' :
+        state.chats.map(c => {
+          const u = state.users.find(x => x.id === c.with);
+          const last = c.messages[c.messages.length-1];
+          return `
+            <div class="admin-row" style="cursor:pointer;" onclick="openChatWith(${c.with})">
+              <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+              <div class="name">
+                ${u.name}${userBadges(u)}
+                <div style="color:var(--muted);font-size:12px;">${last ? last.text.substring(0,40) : 'Нет сообщений'}</div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+    </div>
+    <div class="card">
+      <div class="section-title">Начать чат</div>
+      ${state.users.filter(u => u.id !== state.user.id).map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}${userBadges(u)}</div>
+          <button class="btn" onclick="openChatWith(${u.id})">Написать</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function openChatWith(userId) {
+  let chat = state.chats.find(c => c.with === userId);
+  if (!chat) {
+    chat = { with: userId, messages: [] };
+    state.chats.push(chat);
+    save();
+  }
+  closeModal('chatModal');
+  switchTab('chats');
+  setTimeout(() => showChatWindow(userId), 50);
+}
+
+function showChatWindow(userId) {
+  const u = state.users.find(x => x.id === userId);
+  const chat = state.chats.find(c => c.with === userId);
+  const m = document.getElementById('mainContent');
+  m.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+        <button class="btn ghost" onclick="switchTab('chats')">←</button>
+        <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+        <div>
+          <div style="font-weight:600;">${u.name}${userBadges(u)}</div>
+          <div style="font-size:12px;color:${u.online?'var(--online)':'var(--muted)'};">${u.online?'онлайн':'был(а) недавно'}</div>
+        </div>
+        <button class="btn" style="margin-left:auto;" onclick="quickCall(${u.id})">📞 Позвонить</button>
+      </div>
+      <div class="chat-window">
+        <div class="chat-messages" id="chatMessages">
+          ${chat.messages.map(msg => `
+            <div class="msg ${msg.from === state.user.id ? 'me' : 'them'}">${msg.text}</div>
+          `).join('') || '<div class="empty">Начни диалог 👋</div>'}
+        </div>
+        <div class="chat-input">
+          <input id="msgInput" placeholder="Сообщение..." onkeydown="if(event.key==='Enter')sendMsg(${userId})" />
+          <button class="btn" onclick="sendMsg(${userId})">➤</button>
+        </div>
+      </div>
+    </div>
+  `;
+  const box = document.getElementById('chatMessages');
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendMsg(userId) {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  const chat = state.chats.find(c => c.with === userId);
+  chat.messages.push({ from: state.user.id, text, time: Date.now() });
+  save();
+  input.value = '';
+  showChatWindow(userId);
+}
+
+/* ============ CALLS ============ */
+function renderCalls() {
+  return `
+    <div class="card">
+      <div class="section-title">История звонков</div>
+      ${state.calls.length === 0 ? '<div class="empty">Нет звонков</div>' :
+        state.calls.slice().reverse().map(c => {
+          const u = state.users.find(x => x.id === c.with);
+          return `
+            <div class="admin-row">
+              <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+              <div class="name">${u.name}<div style="color:var(--muted);font-size:12px;">${c.type} • ${timeAgo(c.time)} назад</div></div>
+              <button class="btn" onclick="quickCall(${u.id})">📞</button>
+            </div>
+          `;
+        }).join('')}
+    </div>
+    <div class="card">
+      <div class="section-title">Позвонить</div>
+      ${state.users.filter(u => u.id !== state.user.id).map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}</div>
+          <button class="btn" onclick="quickCall(${u.id})">📞</button>
+          <button class="btn ghost" onclick="quickCall(${u.id}, true)">🎥</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderCallUserList() {
+  const sel = document.getElementById('callUser');
+  if (!sel) return;
+  sel.innerHTML = state.users.filter(u => u.id !== state.user.id)
+    .map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+}
+
+function startCall() {
+  const id = +document.getElementById('callUser').value;
+  quickCall(id);
+}
+
+function quickCall(userId, video = false) {
+  const u = state.users.find(x => x.id === userId);
+  closeModal('callModal');
+  state.calls.push({ with: userId, type: video ? 'Видеозвонок' : 'Аудиозвонок', time: Date.now() });
+  save();
+  const m = document.getElementById('mainContent');
+  m.innerHTML = `
+    <div class="card">
+      <div class="call-screen">
+        <div class="big-avatar">${u.name[0]}</div>
+        <h3>${u.name}${userBadges(u)}</h3>
+        <p style="color:var(--muted);margin-top:6px;">${video?'🎥 Видеозвонок':'📞 Аудиозвонок'} • Соединение...</p>
+        <div class="call-actions">
+          <button class="call-btn end" onclick="endCall()">✕</button>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => { toast('Звонок (демо)'); }, 1500);
+}
+function endCall() { switchTab('calls'); toast('Звонок завершён'); }
+
+/* ============ CLANS ============ */
+function renderClans() {
+  const canCreate = state.user.mplus;
+  return `
+    <div class="card">
+      <div class="section-title">🛡️ Кланы</div>
+      ${!canCreate ? '<div class="empty">Создание кланов доступно только с М+ 👑</div>' :
+        `<button class="btn gold" onclick="openCreateClan()">+ Создать клан</button>`}
+    </div>
+    ${state.clans.map(c => {
+      const owner = state.users.find(u => u.id === c.owner);
+      const isMember = c.members.includes(state.user.id);
+      return `
+        <div class="clan-card">
+          ${c.banner ? '<div class="post-banner" style="height:80px;font-size:14px;">🎞️ Клановый GIF-баннер</div>' : ''}
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="avatar">🛡️</div>
+            <div style="flex:1;">
+              <div style="font-weight:700;">${c.name} <span class="clan-tag">[${c.tag}]</span></div>
+              <div style="font-size:12px;color:var(--muted);">Лидер: ${owner?.name || '—'} • ${c.members.length} участников • ${c.points} очков</div>
+            </div>
+            ${isMember ?
+              `<button class="btn ghost" onclick="leaveClan(${c.id})">Выйти</button>` :
+              `<button class="btn" onclick="joinClan(${c.id})">Вступить</button>`}
+          </div>
+          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+            ${c.members.map(mid => {
+              const mu = state.users.find(u => u.id === mid);
+              const role = c.owner === mid ? 'owner' : 'member';
+              return mu ? `<span class="role-badge ${role}">${mu.name}</span>` : '';
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+function openCreateClan() {
+  if (!state.user.mplus) return toast('Только для М+ 👑');
+  const name = prompt('Название клана:');
+  if (!name) return;
+  const tag = prompt('Тег (до 4 символов):')?.toUpperCase().substring(0,4) || 'CLAN';
+  state.clans.push({
+    id: Date.now(), name, tag, owner: state.user.id,
+    members: [state.user.id], banner: true, points: 0
+  });
+  save(); renderMain(); toast('Клан создан! 🛡️');
+}
+
+function joinClan(id) {
+  const c = state.clans.find(x => x.id === id);
+  if (!c.members.includes(state.user.id)) c.members.push(state.user.id);
+  save(); renderMain(); toast('Вы вступили в клан!');
+}
+function leaveClan(id) {
+  const c = state.clans.find(x => x.id === id);
+  c.members = c.members.filter(m => m !== state.user.id);
+  save(); renderMain(); toast('Вы вышли из клана');
+}
+
+/* ============ M+ ============ */
+function renderMPlus() {
+  const u = state.user;
+  return `
+    <div class="card" style="text-align:center;background:linear-gradient(135deg,#6c5ce7,#a29bfe);">
+      <div style="font-size:64px;">👑</div>
+      <h2 style="margin:10px 0;">М+ Премиум</h2>
+      <p style="opacity:0.9;font-size:13px;">${u.mplus ? 'Подписка активна' : 'Открой все возможности'}</p>
+    </div>
+    <div class="card">
+      <div class="section-title">Возможности М+</div>
+      <div style="font-size:14px;line-height:2;">
+        🎞️ Анимированные баннеры профиля и кланов<br>
+        🛡️ Создание кланов<br>
+        🎨 Кастомные темы оформления<br>
+        😎 Уникальные стикеры и эмодзи<br>
+        🚫 Отключение рекламы<br>
+        ⭐ Анимированный аватар<br>
+        💎 Бейдж-корона рядом с ником<br>
+        🎯 Увеличенные лимиты медиа
+      </div>
+    </div>
+    <div class="card">
+      ${u.mplus ?
+        `<button class="btn ghost" style="width:100%;padding:12px;" onclick="cancelMPlus()">Отменить М+</button>` :
+        `<button class="btn gold" style="width:100%;padding:12px;" onclick="buyMPlus()">Оформить за 299 ₽/мес</button>`}
+    </div>
+  `;
+}
+function buyMPlus() {
+  state.user.mplus = true;
+  const me = state.users.find(u => u.id === state.user.id);
+  if (me) me.mplus = true;
+  save(); renderAll(); closeModal('mplusModal'); toast('М+ активирована! 👑');
+}
+function cancelMPlus() {
+  state.user.mplus = false;
+  const me = state.users.find(u => u.id === state.user.id);
+  if (me) me.mplus = false;
+  save(); renderAll(); toast('М+ отменена');
+}
+
+/* ============ ADMIN ============ */
+function renderAdmin() {
+  const role = state.user.role;
+  if (role !== 'owner' && role !== 'admin') {
+    return '<div class="card"><div class="empty">Доступ только для администрации</div></div>';
+  }
+  return `
+    <div class="card">
+      <div class="section-title">⚙️ Управление пользователями</div>
+      ${state.users.map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">
+            ${u.name}${userBadges(u)}
+            <div style="font-size:11px;color:var(--muted);">${u.nick} • ${u.role}</div>
+          </div>
+          <select onchange="changeRole(${u.id}, this.value)" style="padding:6px;border-radius:6px;background:var(--card2);color:var(--text);border:1px solid var(--border);">
+            <option value="user" ${u.role==='user'?'selected':''}>Пользователь</option>
+            <option value="moderator" ${u.role==='moderator'?'selected':''}>Модератор</option>
+            <option value="admin" ${u.role==='admin'?'selected':''}>Админ</option>
+            ${state.user.role==='owner' ? `<option value="owner" ${u.role==='owner'?'selected':''}>Владелец</option>` : ''}
+          </select>
+          <button class="btn ghost" onclick="toggleVerify(${u.id})" title="Галочка">${u.verified?'✓':'○'}</button>
+          <button class="btn gold" onclick="toggleMPlus(${u.id})" title="М+">👑</button>
+          <button class="btn ghost" onclick="banUser(${u.id})" style="color:#e74c3c;">🚫</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <div class="section-title">📋 Логи действий</div>
+      ${state.logs.length === 0 ? '<div class="empty">Логов пока нет</div>' :
+        state.logs.slice(-20).reverse().map(l => `
+          <div style="padding:6px 0;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);">
+            <b style="color:var(--text);">${l.by}</b>: ${l.text} <span style="float:right;">${timeAgo(l.time)} назад</span>
+          </div>
+        `).join('')}
+    </div>
+  `;
+}
+
+function changeRole(id, role) {
+  const u = state.users.find(x => x.id === id);
+  if (!u) return;
+  u.role = role;
+  if (state.user.id === id) state.user.role = role;
+  logAction(`Роль ${u.name} → ${role}`);
+  save(); renderAll(); toast('Роль обновлена');
+}
+function toggleVerify(id) {
+  const u = state.users.find(x => x.id === id);
+  u.verified = !u.verified;
+  if (state.user.id === id) state.user.verified = u.verified;
+  logAction(`${u.verified?'Выдана':'Снята'} галочка: ${u.name}`);
+  save(); renderAll(); toast(u.verified ? 'Галочка выдана ✓' : 'Галочка снята');
+}
+function toggleMPlus(id) {
+  const u = state.users.find(x => x.id === id);
+  u.mplus = !u.mplus;
+  if (state.user.id === id) state.user.mplus = u.mplus;
+  logAction(`${u.mplus?'Выдана':'Снята'} М+ : ${u.name}`);
+  save(); renderAll(); toast(u.mplus ? 'М+ выдана 👑' : 'М+ снята');
+}
+function banUser(id) {
+  if (id === state.user.id) return toast('Нельзя забанить себя');
+  if (!confirm('Забанить пользователя?')) return;
+  const u = state.users.find(x => x.id === id);
+  state.users = state.users.filter(x => x.id !== id);
+  logAction(`Забанен: ${u.name}`);
+  save(); renderAll(); toast('Пользователь забанен');
+}
+function logAction(text) {
+  state.logs.push({ by: state.user.name, text, time: Date.now() });
+}
+function switchAdminTab(e, tab) {
+  e.target.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  e.target.classList.add('active');
+  // simplified: same view
+  renderAdminTabContent(tab);
+}
+function renderAdminTabContent(tab) {
+  const c = document.getElementById('adminContent');
+  if (!c) return;
+  if (tab === 'clans') {
+    c.innerHTML = state.clans.map(cl => `
+      <div class="clan-card">
+        <b>${cl.name}</b> <span class="clan-tag">[${cl.tag}]</span>
+        <div style="font-size:12px;color:var(--muted);">${cl.members.length} участников</div>
+        <button class="btn ghost" style="margin-top:6px;" onclick="deleteClan(${cl.id})">Удалить</button>
+      </div>
+    `).join('') || '<div class="empty">Кланов нет</div>';
+  } else if (tab === 'logs') {
+    c.innerHTML = state.logs.slice().reverse().map(l => `
+      <div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
+        <b>${l.by}</b>: ${l.text}
+      </div>
+    `).join('') || '<div class="empty">Пусто</div>';
+  } else {
+    c.innerHTML = '<div class="empty">Пользователи — в основном окне</div>';
+  }
+}
+function deleteClan(id) {
+  if (!confirm('Удалить клан?')) return;
+  state.clans = state.clans.filter(c => c.id !== id);
+  logAction(`Удалён клан #${id}`);
+  save(); renderAdmin(); toast('Клан удалён');
+}
+
+/* ============ RIGHTBAR ============ */
+function renderRightbar() {
+  const online = state.users.filter(u => u.online && u.id !== state.user.id);
+  document.getElementById('onlineFriends').innerHTML = online.length === 0 ? '<div class="empty">Никого нет онлайн</div>' :
+    online.map(u => `
+      <div class="contact" onclick="openChatWith(${u.id})">
+        <div class="avatar ${u.mplus?'mplus':''}" style="width:32px;height:32px;font-size:13px;">${u.name[0]}</div>
+        <div>${u.name}${userBadges(u)}</div>
+        <div class="dot on"></div>
+      </div>
+    `).join('');
+
+  const top = [...state.clans].sort((a,b) => b.points - a.points).slice(0,5);
+  document.getElementById('topClans').innerHTML = top.length === 0 ? '<div class="empty">Кланов нет</div>' :
+    top.map((c, i) => `
+      <div class="contact" style="justify-content:space-between;">
+        <div><b style="color:var(--gold);">#${i+1}</b> ${c.name} <span class="clan-tag">[${c.tag}]</span></div>
+        <div style="color:var(--muted);font-size:12px;">${c.points}</div>
+      </div>
+    `).join('');
+}
+
+/* ============ CHAT MODAL LIST ============ */
+function renderChatList() {
+  const el = document.getElementById('chatList');
+  if (!el) return;
+  el.innerHTML = state.chats.length === 0 ? '<div class="empty">Нет чатов</div>' :
+    state.chats.map(c => {
+      const u = state.users.find(x => x.id === c.with);
+      if (!u) return '';
+      const last = c.messages[c.messages.length-1];
+      return `
+        <div class="admin-row" style="cursor:pointer;" onclick="closeModal('chatModal');openChatWith(${c.with})">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}<div style="font-size:12px;color:var(--muted);">${last?.text || 'Нет сообщений'}</div></div>
+        </div>
+      `;
+    }).join('');
+}
+
+/* ============ MODALS ============ */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'adminModal') renderAdminTabContent('users');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ============ UTILS ============ */
+function toast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function globalSearch(q) {
+  if (!q) return;
+  // simplified
+}
+
+/* ============ BOOT ============ */
+load();
+if (state.user) {
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  renderAll();
+}
+</script>
+</body>
+</html>
