@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>МКонтакт</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  :root {
+    --bg: #0f0f17; --card: #1a1a2e; --card2: #22223b; --border: #2d2d44;
+    --text: #e8e8f0; --muted: #8b8ba7; --accent: #6c5ce7; --accent2: #a29bfe;
+    --gold: #ffd93d; --online: #4ade80;
+  }
+  body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header {
+    position: sticky; top: 0; z-index: 100;
+    background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+    padding: 12px 20px; display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 4px 20px rgba(108,92,231,0.3);
+  }
+  .logo { font-size: 22px; font-weight: 800; color: white; }
+  .logo span { color: var(--gold); }
+  header input.search {
+    flex: 1; max-width: 400px; padding: 8px 14px; border-radius: 20px;
+    border: none; background: rgba(255,255,255,0.2); color: white; outline: none;
+  }
+  .header-actions { display: flex; gap: 10px; margin-left: auto; align-items: center; }
+  .btn-icon {
+    background: rgba(255,255,255,0.15); border: none; color: white;
+    width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .btn-icon:hover { background: rgba(255,255,255,0.3); }
+
+  .container { display: grid; grid-template-columns: 240px 1fr 280px; gap: 16px; max-width: 1200px; margin: 16px auto; padding: 0 16px; width: 100%; flex: 1; }
+  @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .sidebar, .rightbar { display: none; } }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+  .nav-item:hover { background: var(--card2); }
+  .nav-item.active { background: var(--accent); color: white; }
+
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; color: white; flex-shrink: 0; position: relative;
+  }
+  .avatar.mplus::after { content: "👑"; position: absolute; top: -6px; right: -6px; font-size: 14px; }
+  .verified::after {
+    content: "✓"; display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; background: #1da1f2; color: white;
+    border-radius: 50%; font-size: 10px; margin-left: 4px;
+  }
+  .mplus-badge { background: linear-gradient(90deg, #ffd93d, #ff9a3d); color: #1a1a2e; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; margin-left: 4px; }
+
+  .composer textarea { width: 100%; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 10px; color: var(--text); resize: none; outline: none; min-height: 70px; }
+  .composer .row { display: flex; justify-content: space-between; margin-top: 8px; }
+  .btn { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  .btn:hover { background: var(--accent2); }
+  .btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn.gold { background: linear-gradient(90deg,#ffd93d,#ff9a3d); color: #1a1a2e; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .post { margin-bottom: 12px; }
+  .post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .post-head .name { font-weight: 600; font-size: 14px; display: flex; align-items: center; }
+  .post-head .time { color: var(--muted); font-size: 12px; }
+  .post-body { font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+  .post-banner {
+    width: 100%; height: 140px; border-radius: 10px;
+    background: linear-gradient(135deg,#6c5ce7,#a29bfe,#fd79a8);
+    background-size: 200% 200%; animation: gm 4s ease infinite;
+    margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;
+  }
+  @keyframes gm { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .post-actions { display: flex; gap: 16px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .post-actions button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 4px; }
+  .post-actions button:hover { color: var(--accent2); }
+  .post-actions button.liked { color: #fd79a8; }
+
+  .contact { display: flex; align-items: center; gap: 10px; padding: 6px 0; cursor: pointer; font-size: 13px; }
+  .contact .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-left: auto; }
+  .contact .dot.on { background: var(--online); }
+  .section-title { font-size: 13px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--card); border-radius: 16px; padding: 20px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); }
+  .modal h2 { margin-bottom: 14px; font-size: 18px; }
+  .modal input, .modal select, .modal textarea { width: 100%; padding: 8px 12px; border-radius: 8px; background: var(--card2); border: 1px solid var(--border); color: var(--text); outline: none; font-size: 14px; margin-bottom: 10px; }
+  .modal-close { float: right; cursor: pointer; color: var(--muted); font-size: 20px; }
+
+  .role-badge { font-size: 10px; padding: 2px 6px; border-radius: 6px; background: var(--accent); color: white; margin-left: 6px; }
+  .role-badge.owner { background: linear-gradient(90deg,#ffd93d,#ff9a3d); color:#1a1a2e;}
+  .role-badge.admin { background: #e74c3c; }
+  .role-badge.mod { background: #3498db; }
+
+  .admin-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid var(--border); }
+  .admin-row:last-child { border-bottom: none; }
+  .admin-row .name { flex: 1; font-size: 14px; }
+
+  .chat-window { display: flex; flex-direction: column; height: 60vh; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 10px; }
+  .msg { padding: 8px 12px; border-radius: 12px; margin-bottom: 8px; max-width: 70%; font-size: 14px; word-wrap: break-word; }
+  .msg.me { background: var(--accent); color: white; margin-left: auto; }
+  .msg.them { background: var(--card2); }
+  .chat-input { display: flex; gap: 8px; margin-top: 8px; }
+  .chat-input input { flex: 1; padding: 10px; border-radius: 10px; background: var(--card2); border: 1px solid var(--border); color: var(--text); }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 12px 20px; border-radius: 10px; z-index: 300; opacity: 0; transition: 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  .auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  .auth-box { background: var(--card); padding: 30px; border-radius: 20px; width: 100%; max-width: 380px; border: 1px solid var(--border); text-align: center; }
+  .auth-box h1 { font-size: 32px; margin-bottom: 6px; }
+  .auth-box h1 span { color: var(--gold); }
+  .auth-box p { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .auth-box input { width: 100%; padding: 10px 12px; border-radius: 8px; background: var(--card2); border: 1px solid var(--border); color: var(--text); outline: none; margin-bottom: 10px; font-size: 14px; }
+  .auth-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .auth-tabs .tab { flex: 1; padding: 8px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 13px; background: var(--card2); }
+  .auth-tabs .tab.active { background: var(--accent); color: white; }
+
+  .hidden { display: none !important; }
+  .empty { color: var(--muted); text-align: center; padding: 20px; font-size: 13px; }
+  .clan-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px; background: var(--card2); }
+  .clan-tag { color: var(--gold); font-weight: 700; }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-box">
+    <h1>М<span>Контакт</span> 👑</h1>
+    <p>Социальная сеть нового поколения</p>
+
+    <div class="auth-tabs">
+      <div class="tab active" data-mode="login" onclick="switchAuthMode('login')">Вход</div>
+      <div class="tab" data-mode="register" onclick="switchAuthMode('register')">Регистрация</div>
+    </div>
+
+    <input id="authName" placeholder="Имя" class="hidden" />
+    <input id="authNick" placeholder="@ник" />
+    <input id="authPass" type="password" placeholder="Пароль" onkeydown="if(event.key==='Enter')doAuth()" />
+    <button class="btn" style="width:100%;padding:12px;" onclick="doAuth()" id="authBtn">Войти</button>
+    <p style="margin-top:16px;font-size:11px;">Демо-админ: <b>@owner</b> / <b>admin123</b></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <header>
+    <div class="logo">М<span>Контакт</span> 👑</div>
+    <input class="search" placeholder="Поиск..." oninput="globalSearch(this.value)" />
+    <div class="header-actions">
+      <button class="btn-icon" onclick="openModal('callModal')" title="Звонки">📞</button>
+      <button class="btn-icon" onclick="openModal('chatModal')" title="Сообщения">💬</button>
+      <button class="btn-icon" onclick="openModal('mplusModal')" title="М+">👑</button>
+      <button class="btn-icon" onclick="switchTab('admin')" title="Админ">⚙️</button>
+      <button class="btn-icon" onclick="logout()" title="Выход">🚪</button>
+      <div class="avatar" id="headerAvatar"></div>
+    </div>
+  </header>
+
+  <div class="container">
+    <aside class="sidebar">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" id="sideAvatar"></div>
+          <div>
+            <div id="sideName" style="font-weight:600;font-size:14px;"></div>
+            <div style="font-size:12px;color:var(--muted);" id="sideRole"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="nav-item active" data-tab="feed" onclick="switchTab('feed')"><span>📰</span> Лента</div>
+        <div class="nav-item" data-tab="profile" onclick="switchTab('profile')"><span>👤</span> Профиль</div>
+        <div class="nav-item" data-tab="friends" onclick="switchTab('friends')"><span>👥</span> Друзья</div>
+        <div class="nav-item" data-tab="chats" onclick="switchTab('chats')"><span>💬</span> Сообщения</div>
+        <div class="nav-item" data-tab="calls" onclick="switchTab('calls')"><span>📞</span> Звонки</div>
+        <div class="nav-item" data-tab="clans" onclick="switchTab('clans')"><span>🛡️</span> Кланы</div>
+        <div class="nav-item" data-tab="mplus" onclick="switchTab('mplus')"><span>👑</span> М+</div>
+        <div class="nav-item" data-tab="admin" onclick="switchTab('admin')"><span>⚙️</span> Админ</div>
+      </div>
+    </aside>
+
+    <main id="mainContent"></main>
+
+    <aside class="rightbar">
+      <div class="card">
+        <div class="section-title">Онлайн</div>
+        <div id="onlineFriends"></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Топ кланов</div>
+        <div id="topClans"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="chatModal" onclick="if(event.target===this)closeModal('chatModal')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('chatModal')">✕</span>
+    <h2>💬 Начать чат</h2>
+    <div id="chatList"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="callModal" onclick="if(event.target===this)closeModal('callModal')">
+  <div class="modal">
+    <span class="modal-close" onclick="closeModal('callModal')">✕</span>
+    <h2>📞 Позвонить</h2>
+    <select id="callUser"></select>
+    <button class="btn" style="width:100%;" onclick="startCall()">📞 Позвонить</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="mplusModal" onclick="if(event.target===this)closeModal('mplusModal')">
+  <div class="modal" style="text-align:center;">
+    <span class="modal-close" onclick="closeModal('mplusModal')">✕</span>
+    <h2>👑 Подписка М+</h2>
+    <div style="font-size:48px;">👑</div>
+    <p style="color:var(--muted);font-size:13px;margin:12px 0;">
+      Анимированные баннеры • Кланы • Стикеры • Без рекламы
+    </p>
+    <button class="btn gold" style="width:100%;padding:12px;" onclick="buyMPlus()">Оформить за 299 ₽</button>
+  </div>
+</div>
+
+<script>
+/* ==================== API ==================== */
+const API = {
+  token: localStorage.getItem('mkontakt_token'),
+  async req(method, url, body) {
+    const res = await fetch('/api' + url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(this.token ? { 'Authorization': 'Bearer ' + this.token } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Ошибка сервера');
+    return data;
+  },
+  get(u) { return this.req('GET', u); },
+  post(u, b) { return this.req('POST', u, b); },
+  del(u) { return this.req('DELETE', u); },
+  setToken(t) {
+    this.token = t;
+    if (t) localStorage.setItem('mkontakt_token', t);
+    else localStorage.removeItem('mkontakt_token');
+  }
+};
+
+/* ==================== STATE ==================== */
+const state = {
+  user: null, currentTab: 'feed',
+  users: [], posts: [], friends: [], chats: [], clans: [], calls: []
+};
+
+/* ==================== AUTH ==================== */
+let authMode = 'login';
+function switchAuthMode(m) {
+  authMode = m;
+  document.querySelectorAll('.auth-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.mode === m));
+  document.getElementById('authName').classList.toggle('hidden', m === 'login');
+  document.getElementById('authBtn').textContent = m === 'login' ? 'Войти' : 'Зарегистрироваться';
+}
+
+async function doAuth() {
+  const name = document.getElementById('authName').value.trim();
+  const nick = document.getElementById('authNick').value.trim();
+  const password = document.getElementById('authPass').value;
+  try {
+    let res;
+    if (authMode === 'register') {
+      if (!name) throw new Error('Введи имя');
+      res = await API.post('/register', { name, nick, password });
+    } else {
+      res = await API.post('/login', { nick, password });
+    }
+    API.setToken(res.token);
+    await loadMe();
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    await loadAll();
+    toast('Добро пожаловать, ' + state.user.name + '!');
+  } catch (e) { toast(e.message); }
+}
+
+async function loadMe() { state.user = await API.get('/me'); }
+
+async function logout() {
+  try { await API.post('/logout'); } catch {}
+  API.setToken(null);
+  location.reload();
+}
+
+/* ==================== LOAD ==================== */
+async function loadAll() {
+  renderUser();
+  await Promise.all([loadPosts(), loadFriends(), loadChats(), loadClans(), loadUsers(), loadCalls()]);
+  renderMain();
+  renderRightbar();
+  renderChatModal();
+  renderCallList();
+}
+
+async function loadPosts() { state.posts = await API.get('/posts'); }
+async function loadFriends() { state.friends = await API.get('/friends'); }
+async function loadChats() { state.chats = await API.get('/chats'); }
+async function loadClans() { state.clans = await API.get('/clans'); }
+async function loadUsers() { state.users = await API.get('/users'); }
+async function loadCalls() { state.calls = await API.get('/calls'); }
+
+/* ==================== RENDER ==================== */
+function renderUser() {
+  const u = state.user;
+  document.getElementById('headerAvatar').textContent = u.name[0];
+  document.getElementById('headerAvatar').classList.toggle('mplus', !!u.mplus);
+  document.getElementById('sideAvatar').textContent = u.name[0];
+  document.getElementById('sideAvatar').classList.toggle('mplus', !!u.mplus);
+  const roles = { owner: 'Владелец 👑', admin: 'Администратор', moderator: 'Модератор', user: 'Пользователь' };
+  document.getElementById('sideName').innerHTML = u.name + (u.verified ? '<span class="verified"></span>' : '') + (u.mplus ? '<span class="mplus-badge">M+</span>' : '');
+  document.getElementById('sideRole').textContent = roles[u.role];
+}
+
+function switchTab(t) {
+  state.currentTab = t;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.tab === t));
+  renderMain();
+}
+
+function userBadges(u) {
+  return (u.verified ? '<span class="verified"></span>' : '') + (u.mplus ? '<span class="mplus-badge">M+</span>' : '');
+}
+
+function timeAgo(ts) {
+  const d = Math.floor(Date.now()/1000 - ts);
+  if (d < 60) return d + 'с';
+  if (d < 3600) return Math.floor(d/60) + 'м';
+  if (d < 86400) return Math.floor(d/3600) + 'ч';
+  return Math.floor(d/86400) + 'д';
+}
+
+async function renderMain() {
+  const m = document.getElementById('mainContent');
+  switch (state.currentTab) {
+    case 'feed': m.innerHTML = await renderFeed(); break;
+    case 'profile': m.innerHTML = renderProfile(); break;
+    case 'friends': m.innerHTML = renderFriends(); break;
+    case 'chats': m.innerHTML = renderChats(); break;
+    case 'calls': m.innerHTML = renderCalls(); break;
+    case 'clans': m.innerHTML = renderClans(); break;
+    case 'mplus': m.innerHTML = renderMPlus(); break;
+    case 'admin': m.innerHTML = await renderAdmin(); break;
+  }
+}
+
+/* ==================== FEED ==================== */
+async function renderFeed() {
+  return `
+    <div class="card composer">
+      <textarea id="postText" placeholder="Что нового, ${state.user.name}?"></textarea>
+      <div class="row">
+        <div style="display:flex;gap:6px;">
+          <button class="btn ghost" onclick="publishPost(true)">🎞️ GIF</button>
+        </div>
+        <button class="btn" onclick="publishPost(false)">Опубликовать</button>
+      </div>
+    </div>
+    ${state.posts.map(p => `
+      <div class="card post">
+        <div class="post-head">
+          <div class="avatar ${p.mplus?'mplus':''}">${p.author_name[0]}</div>
+          <div>
+            <div class="name">${p.author_name}${userBadges(p)}</div>
+            <div class="time">${timeAgo(p.created_at)} назад</div>
+          </div>
+        </div>
+        ${p.banner ? '<div class="post-banner">🎞️ Анимированный баннер М+</div>' : ''}
+        <div class="post-body">${escapeHtml(p.text)}</div>
+        <div class="post-actions">
+          <button class="${p.liked?'liked':''}" onclick="toggleLike(${p.id})">❤️ ${p.likes}</button>
+          <button onclick="addComment(${p.id})">💬 Коммент</button>
+          ${(p.author_id === state.user.id || ['owner','admin','moderator'].includes(state.user.role)) ? `<button onclick="deletePost(${p.id})" style="color:#e74c3c;">🗑 Удалить</button>` : ''}
+        </div>
+      </div>
+    `).join('') || '<div class="empty">Постов пока нет</div>'}
+  `;
+}
+
+function escapeHtml(s) { return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function publishPost(banner) {
+  const text = document.getElementById('postText').value.trim();
+  if (!text) return toast('Введи текст');
+  try {
+    await API.post('/posts', { text, banner });
+    await loadPosts();
+    renderMain();
+    toast(banner ? 'GIF-пост опубликован!' : 'Опубликовано!');
+  } catch (e) { toast(e.message); }
+}
+
+async function toggleLike(id) {
+  await API.post(`/posts/${id}/like`);
+  await loadPosts();
+  renderMain();
+}
+
+async function addComment(id) {
+  const text = prompt('Комментарий:');
+  if (!text) return;
+  await API.post(`/posts/${id}/comments`, { text });
+  toast('Комментарий добавлен');
+}
+
+async function deletePost(id) {
+  if (!confirm('Удалить пост?')) return;
+  try { await API.del(`/posts/${id}`); await loadPosts(); renderMain(); toast('Удалено'); }
+  catch (e) { toast(e.message); }
+}
+
+/* ==================== PROFILE ==================== */
+function renderProfile() {
+  const u = state.user;
+  return `
+    <div class="card">
+      <div class="post-banner" style="height:160px;">${u.mplus ? '🎞️ Анимированный баннер (M+)' : 'Обложка профиля'}</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:-30px;padding-left:10px;">
+        <div class="avatar ${u.mplus?'mplus':''}" style="width:80px;height:80px;font-size:32px;border:4px solid var(--card);">${u.name[0]}</div>
+        <div>
+          <div style="font-size:20px;font-weight:700;">${u.name}${userBadges(u)}</div>
+          <div style="color:var(--muted);font-size:13px;">${u.nick}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:20px;margin-top:16px;font-size:13px;">
+        <div><b>${state.friends.length}</b> друзей</div>
+        <div><b>${state.posts.filter(p=>p.author_id===u.id).length}</b> постов</div>
+        <div><b>${state.clans.filter(c=>c.is_member).length}</b> кланов</div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+        ${!u.mplus ? `<button class="btn gold" onclick="buyMPlus()">👑 Оформить М+</button>` : `<button class="btn ghost">👑 М+ активна</button>`}
+        ${u.mplus ? `<button class="btn ghost" onclick="toast('Баннер обновлён! 🎞️')">🎞️ Сменить баннер</button>` : ''}
+      </div>
+    </div>
+    <div class="section-title" style="margin:14px 0 8px;">Мои посты</div>
+    ${state.posts.filter(p => p.author_id === u.id).map(p => `
+      <div class="card post">
+        ${p.banner ? '<div class="post-banner">🎞️</div>' : ''}
+        <div class="post-body">${escapeHtml(p.text)}</div>
+        <div style="font-size:12px;color:var(--muted);">${timeAgo(p.created_at)} назад • ❤️ ${p.likes}</div>
+      </div>
+    `).join('') || '<div class="empty">Пока нет постов</div>'}
+  `;
+}
+
+/* ==================== FRIENDS ==================== */
+function renderFriends() {
+  const friendIds = new Set(state.friends.map(f => f.id));
+  const others = state.users.filter(u => u.id !== state.user.id && !friendIds.has(u.id));
+  return `
+    <div class="card">
+      <div class="section-title">Мои друзья (${state.friends.length})</div>
+      ${state.friends.map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}${userBadges(u)}</div>
+          <button class="btn ghost" onclick="openChatWith(${u.id})">💬</button>
+          <button class="btn ghost" onclick="removeFriend(${u.id})">✕</button>
+        </div>
+      `).join('') || '<div class="empty">Нет друзей</div>'}
+    </div>
+    <div class="card">
+      <div class="section-title">Все пользователи</div>
+      ${others.map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}${userBadges(u)} <span style="color:var(--muted);font-size:12px;">${u.nick}</span></div>
+          <button class="btn" onclick="addFriend(${u.id})">+ В друзья</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function addFriend(id) { await API.post(`/friends/${id}`); await loadFriends(); renderMain(); toast('Добавлен'); }
+async function removeFriend(id) { await API.del(`/friends/${id}`); await loadFriends(); renderMain(); toast('Удалён'); }
+
+/* ==================== CHATS ==================== */
+function renderChats() {
+  return `
+    <div class="card">
+      <div class="section-title">Мои чаты</div>
+      ${state.chats.length === 0 ? '<div class="empty">Нет чатов</div>' :
+        state.chats.map(c => `
+          <div class="admin-row" style="cursor:pointer;" onclick="openChatWith(${c.other_id})">
+            <div class="avatar ${c.mplus?'mplus':''}">${c.other_name[0]}</div>
+            <div class="name">${c.other_name}${userBadges(c)}
+              <div style="color:var(--muted);font-size:12px;">${c.last_message || 'Нет сообщений'}</div>
+            </div>
+          </div>
+        `).join('')}
+    </div>
+    <div class="card">
+      <div class="section-title">Начать чат</div>
+      ${state.users.filter(u => u.id !== state.user.id).map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}${userBadges(u)}</div>
+          <button class="btn" onclick="openChatWith(${u.id})">Написать</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function openChatWith(userId) {
+  closeModal('chatModal');
+  state.currentChatWith = userId;
+  const u = state.users.find(x => x.id === userId);
+  const m = document.getElementById('mainContent');
+  m.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+        <button class="btn ghost" onclick="switchTab('chats')">←</button>
+        <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+        <div>
+          <div style="font-weight:600;">${u.name}${userBadges(u)}</div>
+          <div style="font-size:12px;color:${u.online?'var(--online)':'var(--muted)'};">${u.online?'онлайн':'оффлайн'}</div>
+        </div>
+        <button class="btn" style="margin-left:auto;" onclick="quickCall(${u.id})">📞</button>
+      </div>
+      <div class="chat-window">
+        <div class="chat-messages" id="chatMessages">Загрузка...</div>
+        <div class="chat-input">
+          <input id="msgInput" placeholder="Сообщение..." onkeydown="if(event.key==='Enter')sendMsg(${userId})" />
+          <button class="btn" onclick="sendMsg(${userId})">➤</button>
+        </div>
+      </div>
+    </div>
+  `;
+  await loadMessages(userId);
+}
+
+async function loadMessages(userId) {
+  const data = await API.get(`/chats/${userId}`);
+  const box = document.getElementById('chatMessages');
+  if (!box) return;
+  box.innerHTML = data.messages.map(msg => `
+    <div class="msg ${msg.from_id === state.user.id ? 'me' : 'them'}">${escapeHtml(msg.text)}</div>
+  `).join('') || '<div class="empty">Начни диалог 👋</div>';
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendMsg(userId) {
+  const input = document.getElementById('msgInput');
+  const text = input.value.trim();
+  if (!text) return;
+  await API.post(`/chats/${userId}`, { text });
+  input.value = '';
+  await loadMessages(userId);
+  await loadChats();
+}
+
+function renderChatModal() {
+  const el = document.getElementById('chatList');
+  el.innerHTML = state.users.filter(u => u.id !== state.user.id).map(u => `
+    <div class="admin-row" style="cursor:pointer;" onclick="openChatWith(${u.id})">
+      <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+      <div class="name">${u.name}${userBadges(u)}</div>
+    </div>
+  `).join('');
+}
+
+/* ==================== CALLS ==================== */
+function renderCalls() {
+  return `
+    <div class="card">
+      <div class="section-title">История</div>
+      ${state.calls.length === 0 ? '<div class="empty">Нет звонков</div>' :
+        state.calls.map(c => `
+          <div class="admin-row">
+            <div class="avatar ${c.mplus?'mplus':''}">${c.other_name[0]}</div>
+            <div class="name">${c.other_name}<div style="color:var(--muted);font-size:12px;">${c.type} • ${timeAgo(c.created_at)} назад</div></div>
+          </div>
+        `).join('')}
+    </div>
+    <div class="card">
+      <div class="section-title">Позвонить</div>
+      ${state.users.filter(u => u.id !== state.user.id).map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}</div>
+          <button class="btn" onclick="quickCall(${u.id})">📞</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderCallList() {
+  const sel = document.getElementById('callUser');
+  if (!sel) return;
+  sel.innerHTML = state.users.filter(u => u.id !== state.user.id)
+    .map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+}
+
+async function startCall() {
+  const id = +document.getElementById('callUser').value;
+  quickCall(id);
+}
+
+async function quickCall(userId) {
+  await API.post('/calls', { to_id: userId, type: 'audio' });
+  await loadCalls();
+  const u = state.users.find(x => x.id === userId);
+  closeModal('callModal');
+  toast(`📞 Звонок ${u.name} (демо)...`);
+}
+
+/* ==================== CLANS ==================== */
+function renderClans() {
+  return `
+    <div class="card">
+      <div class="section-title">🛡️ Кланы</div>
+      ${state.user.mplus
+        ? '<button class="btn gold" onclick="createClan()">+ Создать клан</button>'
+        : '<div class="empty">Создание кланов — только с М+ 👑</div>'}
+    </div>
+    ${state.clans.map(c => `
+      <div class="clan-card">
+        ${c.banner ? '<div class="post-banner" style="height:70px;font-size:13px;">🎞️ Клановый баннер</div>' : ''}
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar">🛡️</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;">${c.name} <span class="clan-tag">[${c.tag}]</span></div>
+            <div style="font-size:12px;color:var(--muted);">Лидер: ${c.owner_name} • ${c.members_count} участников</div>
+          </div>
+          ${c.is_member
+            ? `<button class="btn ghost" onclick="leaveClan(${c.id})">Выйти</button>`
+            : `<button class="btn" onclick="joinClan(${c.id})">Вступить</button>`}
+        </div>
+      </div>
+    `).join('') || '<div class="empty">Кланов пока нет</div>'}
+  `;
+}
+
+async function createClan() {
+  const name = prompt('Название клана:');
+  if (!name) return;
+  const tag = prompt('Тег (до 4 символов):');
+  if (!tag) return;
+  try { await API.post('/clans', { name, tag }); await loadClans(); renderMain(); toast('Клан создан! 🛡️'); }
+  catch (e) { toast(e.message); }
+}
+async function joinClan(id) { await API.post(`/clans/${id}/join`); await loadClans(); renderMain(); toast('Вступил!'); }
+async function leaveClan(id) { await API.post(`/clans/${id}/leave`); await loadClans(); renderMain(); toast('Вышел'); }
+
+/* ==================== M+ ==================== */
+function renderMPlus() {
+  const u = state.user;
+  return `
+    <div class="card" style="text-align:center;background:linear-gradient(135deg,#6c5ce7,#a29bfe);">
+      <div style="font-size:64px;">👑</div>
+      <h2>М+ Премиум</h2>
+      <p>${u.mplus ? 'Подписка активна' : 'Открой все возможности'}</p>
+    </div>
+    <div class="card">
+      <div class="section-title">Возможности</div>
+      <div style="line-height:2;font-size:14px;">
+        🎞️ Анимированные баннеры<br>
+        🛡️ Создание кланов<br>
+        🎨 Кастомные темы<br>
+        🚫 Без рекламы<br>
+        ⭐ Анимированный аватар
+      </div>
+    </div>
+    <div class="card">
+      ${u.mplus
+        ? '<button class="btn ghost" style="width:100%;padding:12px;" onclick="cancelMPlus()">Отменить М+</button>'
+        : '<button class="btn gold" style="width:100%;padding:12px;" onclick="buyMPlus()">Оформить за 299 ₽</button>'}
+    </div>
+  `;
+}
+
+async function buyMPlus() {
+  await API.post('/mplus/buy');
+  await loadMe(); renderUser(); renderMain();
+  closeModal('mplusModal');
+  toast('М+ активирована! 👑');
+}
+async function cancelMPlus() {
+  await API.post('/mplus/cancel');
+  await loadMe(); renderUser(); renderMain();
+  toast('М+ отменена');
+}
+
+/* ==================== ADMIN ==================== */
+async function renderAdmin() {
+  if (!['owner','admin'].includes(state.user.role)) {
+    return '<div class="card"><div class="empty">Доступ только для администрации</div></div>';
+  }
+  const logs = await API.get('/admin/logs').catch(() => []);
+  return `
+    <div class="card">
+      <div class="section-title">⚙️ Управление</div>
+      ${state.users.map(u => `
+        <div class="admin-row">
+          <div class="avatar ${u.mplus?'mplus':''}">${u.name[0]}</div>
+          <div class="name">${u.name}${userBadges(u)}
+            <div style="font-size:11px;color:var(--muted);">${u.nick} • ${u.role}</div>
+          </div>
+          <select onchange="changeRole(${u.id}, this.value)" style="padding:6px;border-radius:6px;background:var(--card2);color:var(--text);border:1px solid var(--border);">
+            <option value="user" ${u.role==='user'?'selected':''}>Пользователь</option>
+            <option value="moderator" ${u.role==='moderator'?'selected':''}>Модератор</option>
+            <option value="admin" ${u.role==='admin'?'selected':''}>Админ</option>
+            ${state.user.role==='owner' ? `<option value="owner" ${u.role==='owner'?'selected':''}>Владелец</option>` : ''}
+          </select>
+          <button class="btn ghost" onclick="toggleVerify(${u.id})" title="Галочка">${u.verified?'✓':'○'}</button>
+          <button class="btn gold" onclick="toggleMPlus(${u.id})" title="М+">👑</button>
+          <button class="btn ghost" onclick="banUser(${u.id})" style="color:#e74c3c;">🚫</button>
+        </div>
+      `).join('')}
+    </div>
+    <div class="card">
+      <div class="section-title">📋 Логи</div>
+      ${logs.length === 0 ? '<div class="empty">Пусто</div>' :
+        logs.map(l => `
+          <div style="padding:6px 0;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);">
+            <b style="color:var(--text);">${l.by_name}</b>: ${l.text} • ${timeAgo(l.created_at)} назад
+          </div>
+        `).join('')}
+    </div>
+  `;
+}
+
+async function changeRole(id, role) {
+  try { await API.post(`/admin/users/${id}/role`, { role }); await loadUsers(); renderMain(); toast('Роль обновлена'); }
+  catch (e) { toast(e.message); }
+}
+async function toggleVerify(id) {
+  await API.post(`/admin/users/${id}/verify`);
+  await loadUsers(); renderMain(); toast('Галочка обновлена');
+}
+async function toggleMPlus(id) {
+  await API.post(`/admin/users/${id}/mplus`);
+  await loadUsers(); renderMain(); toast('М+ обновлена');
+}
+async function banUser(id) {
+  if (!confirm('Забанить?')) return;
+  try { await API.del(`/admin/users/${id}`); await loadUsers(); renderMain(); toast('Забанен'); }
+  catch (e) { toast(e.message); }
+}
+
+/* ==================== RIGHTBAR ==================== */
+function renderRightbar() {
+  const online = state.users.filter(u => u.online && u.id !== state.user.id);
+  document.getElementById('onlineFriends').innerHTML = online.length === 0
+    ? '<div class="empty">Никого нет</div>'
+    : online.map(u => `
+      <div class="contact" onclick="openChatWith(${u.id})">
+        <div class="avatar ${u.mplus?'mplus':''}" style="width:32px;height:32px;font-size:13px;">${u.name[0]}</div>
+        <div>${u.name}${userBadges(u)}</div>
+        <div class="dot on"></div>
+      </div>
+    `).join('');
+
+  const top = [...state.clans].slice(0,5);
+  document.getElementById('topClans').innerHTML = top.length === 0 ? '<div class="empty">Нет кланов</div>' :
+    top.map((c,i) => `
+      <div class="contact" style="justify-content:space-between;">
+        <div><b style="color:var(--gold);">#${i+1}</b> ${c.name} <span class="clan-tag">[${c.tag}]</span></div>
+        <div style="color:var(--muted);font-size:12px;">${c.points}</div>
+      </div>
+    `).join('');
+}
+
+/* ==================== MODALS & UTILS ==================== */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function toast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function globalSearch(q) {}
+
+/* ==================== BOOT ==================== */
+(async () => {
+  if (API.token) {
+    try {
+      await loadMe();
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      await loadAll();
+    } catch {
+      API.setToken(null);
+    }
+  }
+})();
+</script>
+</body>
+</html>
